@@ -1,0 +1,31 @@
+name: Daily Job Scraper
+on:
+  schedule:
+    - cron: '30 1 * * *'   # 01:30 UTC = 07:00 IST daily
+  workflow_dispatch:
+
+jobs:
+  run-scraper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+      - name: Run scraper
+        env:
+          ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
+          ADZUNA_APP_KEY: ${{ secrets.ADZUNA_APP_KEY }}
+        run: |
+          python job_scraper.py
+      - name: Upload results as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: job-results
+          path: job_results.csv
+      # Optional: send email using GitHub Action or push to Google Sheets via another action
